@@ -25,11 +25,7 @@ function Index() {
     <div className="relative min-h-screen overflow-hidden bg-background">
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10"
-        style={{
-          background:
-            "radial-gradient(1200px 700px at 10% -10%, oklch(0.72 0.14 220 / 0.35), transparent 60%), radial-gradient(900px 600px at 100% 10%, oklch(0.75 0.15 150 / 0.28), transparent 60%), radial-gradient(800px 800px at 50% 110%, oklch(0.70 0.16 300 / 0.22), transparent 60%), linear-gradient(180deg, oklch(0.99 0.01 240) 0%, oklch(0.96 0.02 240) 50%, oklch(0.94 0.03 250) 100%)",
-        }}
+        className="pointer-events-none fixed inset-0 -z-10 bg-ambient bg-ambient-animated"
       />
       <PublicHeader />
       <main>
