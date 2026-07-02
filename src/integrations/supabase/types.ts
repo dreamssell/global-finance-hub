@@ -14,16 +14,275 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      analytics_events: {
+        Row: {
+          country: string | null
+          created_at: string
+          event_type: string
+          id: number
+          locale: string | null
+          path: string | null
+          post_slug: string | null
+          scroll_depth: number | null
+          session_id: string | null
+          x_pct: number | null
+          y_pct: number | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          event_type: string
+          id?: number
+          locale?: string | null
+          path?: string | null
+          post_slug?: string | null
+          scroll_depth?: number | null
+          session_id?: string | null
+          x_pct?: number | null
+          y_pct?: number | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          event_type?: string
+          id?: number
+          locale?: string | null
+          path?: string | null
+          post_slug?: string | null
+          scroll_depth?: number | null
+          session_id?: string | null
+          x_pct?: number | null
+          y_pct?: number | null
+        }
+        Relationships: []
+      }
+      financial_performance: {
+        Row: {
+          commissions: number
+          country: string | null
+          created_at: string
+          currency: string
+          day: string
+          id: string
+          post_slug: string | null
+          product: Database["public"]["Enums"]["product_type"]
+          revenue: number
+          units: number
+        }
+        Insert: {
+          commissions?: number
+          country?: string | null
+          created_at?: string
+          currency?: string
+          day: string
+          id?: string
+          post_slug?: string | null
+          product: Database["public"]["Enums"]["product_type"]
+          revenue?: number
+          units?: number
+        }
+        Update: {
+          commissions?: number
+          country?: string | null
+          created_at?: string
+          currency?: string
+          day?: string
+          id?: string
+          post_slug?: string | null
+          product?: Database["public"]["Enums"]["product_type"]
+          revenue?: number
+          units?: number
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          country: string | null
+          created_at: string
+          email: string
+          id: string
+          locale: string
+          name: string
+          notes: string | null
+          product: Database["public"]["Enums"]["product_type"]
+          status: Database["public"]["Enums"]["lead_status"]
+          updated_at: string
+          value_range: number
+          whatsapp: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          locale?: string
+          name: string
+          notes?: string | null
+          product: Database["public"]["Enums"]["product_type"]
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+          value_range: number
+          whatsapp?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          locale?: string
+          name?: string
+          notes?: string | null
+          product?: Database["public"]["Enums"]["product_type"]
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+          value_range?: number
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      mcp_servers: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          name: string
+          url: string
+          webhook_secret: string | null
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          name: string
+          url: string
+          webhook_secret?: string | null
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          name?: string
+          url?: string
+          webhook_secret?: string | null
+        }
+        Relationships: []
+      }
+      posts: {
+        Row: {
+          body_br: string | null
+          body_en: string | null
+          body_es: string | null
+          body_it: string | null
+          body_pt: string | null
+          cover_image: string | null
+          created_at: string
+          excerpt_br: string | null
+          excerpt_en: string | null
+          excerpt_es: string | null
+          excerpt_it: string | null
+          excerpt_pt: string | null
+          id: string
+          missing_locales: string[]
+          published: boolean
+          slug: string
+          tags: string[]
+          title_br: string | null
+          title_en: string | null
+          title_es: string | null
+          title_it: string | null
+          title_pt: string | null
+          updated_at: string
+        }
+        Insert: {
+          body_br?: string | null
+          body_en?: string | null
+          body_es?: string | null
+          body_it?: string | null
+          body_pt?: string | null
+          cover_image?: string | null
+          created_at?: string
+          excerpt_br?: string | null
+          excerpt_en?: string | null
+          excerpt_es?: string | null
+          excerpt_it?: string | null
+          excerpt_pt?: string | null
+          id?: string
+          missing_locales?: string[]
+          published?: boolean
+          slug: string
+          tags?: string[]
+          title_br?: string | null
+          title_en?: string | null
+          title_es?: string | null
+          title_it?: string | null
+          title_pt?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body_br?: string | null
+          body_en?: string | null
+          body_es?: string | null
+          body_it?: string | null
+          body_pt?: string | null
+          cover_image?: string | null
+          created_at?: string
+          excerpt_br?: string | null
+          excerpt_en?: string | null
+          excerpt_es?: string | null
+          excerpt_it?: string | null
+          excerpt_pt?: string | null
+          id?: string
+          missing_locales?: string[]
+          published?: boolean
+          slug?: string
+          tags?: string[]
+          title_br?: string | null
+          title_en?: string | null
+          title_es?: string | null
+          title_it?: string | null
+          title_pt?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      lead_status: "new" | "contacted" | "sold" | "archived"
+      product_type: "insurance" | "consortium"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +409,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      lead_status: ["new", "contacted", "sold", "archived"],
+      product_type: ["insurance", "consortium"],
+    },
   },
 } as const
