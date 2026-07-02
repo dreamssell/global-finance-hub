@@ -53,7 +53,31 @@ export const getAnalyticsSummary = createServerFn({ method: "GET" })
       byLocale: Array.from(byLocale, ([locale, count]) => ({ locale, count })).sort((a, b) => b.count - a.count),
       heatmap: rows
         .filter((e) => e.event_type === "click" && e.x_pct != null && e.y_pct != null)
-        .slice(0, 500)
-        .map((e) => ({ x: Number(e.x_pct), y: Number(e.y_pct), path: e.path })),
+        .slice(0, 2000)
+        .map((e) => ({
+          x: Number(e.x_pct),
+          y: Number(e.y_pct),
+          path: e.path ?? "/",
+          ageHours: e.created_at
+            ? Math.max(0, (Date.now() - new Date(e.created_at).getTime()) / 3600000)
+            : 0,
+        })),
+      scrollByPath: (() => {
+        const map = new Map<string, { path: string; buckets: number[]; count: number; avg: number }>();
+        for (const e of rows) {
+          if (e.event_type !== "scroll" || e.scroll_depth == null) continue;
+          const p = e.path ?? "/";
+          const entry = map.get(p) ?? { path: p, buckets: [0, 0, 0, 0], count: 0, avg: 0 };
+          const d = Number(e.scroll_depth);
+          const idx = d >= 100 ? 3 : d >= 75 ? 3 : d >= 50 ? 2 : d >= 25 ? 1 : 0;
+          entry.buckets[idx]++;
+          entry.count++;
+          entry.avg += d;
+          map.set(p, entry);
+        }
+        return Array.from(map.values())
+          .map((e) => ({ ...e, avg: e.count ? Math.round(e.avg / e.count) : 0 }))
+          .sort((a, b) => b.count - a.count);
+      })(),
     };
   });
