@@ -1,25 +1,84 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { getAnalyticsSummary } from "@/lib/analytics.functions";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, CartesianGrid } from "recharts";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 
-export const Route = createFileRoute("/_authenticated/admin/analytics")({ component: Analytics });
+const searchSchema = z.object({
+  path: fallback(z.string(), "__all__").default("__all__"),
+  halfLife: fallback(z.number().int().min(0).max(168), 24).default(24),
+  cbSafe: fallback(z.boolean(), false).default(false),
+  showOverlay: fallback(z.boolean(), true).default(true),
+});
+
+export const Route = createFileRoute("/_authenticated/admin/analytics")({
+  validateSearch: zodValidator(searchSchema),
+  component: Analytics,
+});
+
+// Default palette (blue → red) and color-blind safe palette (viridis-ish: blue → yellow)
+const PALETTE = {
+  normal: {
+    heatmapHue: (w: number) => Math.round(220 - 220 * w), // blue → red
+    scrollBuckets: [
+      "hsla(220,80%,55%,0.35)",
+      "hsla(160,80%,50%,0.55)",
+      "hsla(40,90%,55%,0.75)",
+      "hsla(0,85%,55%,0.9)",
+    ],
+    scrollLegend: [
+      "hsla(220,80%,55%,0.6)",
+      "hsla(160,80%,50%,0.7)",
+      "hsla(40,90%,55%,0.85)",
+      "hsla(0,85%,55%,0.95)",
+    ],
+    gradient:
+      "linear-gradient(to right, hsla(220,90%,50%,0.25), hsla(160,90%,50%,0.45), hsla(60,95%,55%,0.65), hsla(20,95%,55%,0.8), hsla(0,90%,50%,0.9))",
+  },
+  cbSafe: {
+    // Blue → teal → yellow (viridis-inspired, safe for deuteranopia/protanopia)
+    heatmapHue: (w: number) => Math.round(260 - 200 * w),
+    scrollBuckets: [
+      "hsla(260,60%,40%,0.45)",
+      "hsla(200,70%,45%,0.6)",
+      "hsla(160,60%,45%,0.75)",
+      "hsla(55,90%,55%,0.9)",
+    ],
+    scrollLegend: [
+      "hsla(260,60%,40%,0.7)",
+      "hsla(200,70%,45%,0.8)",
+      "hsla(160,60%,45%,0.85)",
+      "hsla(55,90%,55%,0.95)",
+    ],
+    gradient:
+      "linear-gradient(to right, hsla(260,60%,40%,0.5), hsla(220,70%,45%,0.65), hsla(180,65%,45%,0.75), hsla(120,60%,50%,0.85), hsla(55,90%,55%,0.95))",
+  },
+};
 
 function Analytics() {
   const fn = useServerFn(getAnalyticsSummary);
   const q = useQuery({ queryKey: ["analytics-summary"], queryFn: () => fn() });
   const data = q.data;
 
-  const [selectedPath, setSelectedPath] = useState<string>("__all__");
-  const [halfLife, setHalfLife] = useState<number>(24); // hours; 0 = no decay
+  const { path: selectedPath, halfLife, cbSafe, showOverlay } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const setSearch = (patch: Partial<z.infer<typeof searchSchema>>) =>
+    navigate({
+      search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, ...patch }),
+      replace: true,
+    });
+
+  const palette = cbSafe ? PALETTE.cbSafe : PALETTE.normal;
 
   const paths = useMemo(() => {
     const set = new Set<string>();
@@ -55,6 +114,12 @@ function Analytics() {
   }, [data, selectedPath]);
 
   const bucketLabels = ["0–24%", "25–49%", "50–74%", "75–100%"];
+  const bucketDescriptions = [
+    "Cold — few visitors reached this depth",
+    "Warm — moderate reach",
+    "Hot — most visitors scrolled here",
+    "Peak — visitors reached the bottom",
+  ];
   const bucketTotal = scrollRow.buckets.reduce((a, b) => a + b, 0) || 1;
 
   return (
@@ -104,10 +169,10 @@ function Analytics() {
               {points.length} clicks · route {selectedPath === "__all__" ? "all" : selectedPath}
             </p>
           </div>
-          <div className="flex flex-col gap-3 md:flex-row md:items-end">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:flex-wrap">
             <div className="w-56">
               <Label className="text-xs">Route</Label>
-              <Select value={selectedPath} onValueChange={setSelectedPath}>
+              <Select value={selectedPath} onValueChange={(v) => setSearch({ path: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__all__">All routes</SelectItem>
@@ -126,17 +191,39 @@ function Analytics() {
                 min={0}
                 max={168}
                 step={1}
-                onValueChange={(v) => setHalfLife(v[0] ?? 0)}
+                onValueChange={(v) => setSearch({ halfLife: v[0] ?? 0 })}
+                aria-label="Decay half-life in hours"
               />
+            </div>
+            <div className="flex items-center gap-2 pb-1">
+              <Switch
+                id="overlay-toggle"
+                checked={showOverlay}
+                onCheckedChange={(v) => setSearch({ showOverlay: v })}
+                aria-label="Toggle heatmap overlay"
+              />
+              <Label htmlFor="overlay-toggle" className="text-xs">Overlay</Label>
+            </div>
+            <div className="flex items-center gap-2 pb-1">
+              <Switch
+                id="cbsafe-toggle"
+                checked={cbSafe}
+                onCheckedChange={(v) => setSearch({ cbSafe: v })}
+                aria-label="Toggle color-blind safe palette"
+              />
+              <Label htmlFor="cbsafe-toggle" className="text-xs">Color-blind safe</Label>
             </div>
           </div>
         </div>
 
-        <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border/60 bg-muted/30">
-          {points.map((p, i) => {
-            // color: cool (blue) → hot (red) by weight
+        <div
+          role="img"
+          aria-label={`Heatmap overlay showing ${points.length} click points${cbSafe ? ", color-blind safe palette" : ""}`}
+          className="relative aspect-video w-full overflow-hidden rounded-lg border border-border/60 bg-muted/30"
+        >
+          {showOverlay && points.map((p, i) => {
             const w = p.weight;
-            const hue = Math.round(220 - 220 * w); // 220 = blue, 0 = red
+            const hue = palette.heatmapHue(w);
             const alpha = 0.15 + 0.55 * w;
             const size = 14 + 18 * w;
             return (
@@ -154,20 +241,24 @@ function Analytics() {
               />
             );
           })}
+          {!showOverlay && (
+            <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
+              Overlay hidden
+            </div>
+          )}
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">Intensity</span>
+        <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-muted-foreground" aria-label="Intensity legend">
+          <span className="font-medium text-foreground">Click recency</span>
           <div
+            role="img"
+            aria-label={`Gradient: cold or older on the left, hot or recent on the right${cbSafe ? " (color-blind safe)" : ""}`}
             className="h-3 flex-1 min-w-[160px] rounded-full"
-            style={{
-              background:
-                "linear-gradient(to right, hsla(220,90%,50%,0.25), hsla(160,90%,50%,0.45), hsla(60,95%,55%,0.65), hsla(20,95%,55%,0.8), hsla(0,90%,50%,0.9))",
-            }}
+            style={{ background: palette.gradient }}
           />
-          <span>cold (old)</span>
-          <span>→</span>
-          <span>hot (recent)</span>
+          <span aria-hidden="true">◐ cold (old)</span>
+          <span aria-hidden="true">→</span>
+          <span aria-hidden="true">● hot (recent)</span>
         </div>
       </Card>
 
@@ -180,42 +271,40 @@ function Analytics() {
             {scrollRow.count} events · avg depth {scrollRow.avg}%
           </span>
         </div>
-        <div className="flex h-8 w-full overflow-hidden rounded-md border border-border/60">
+        <div
+          role="img"
+          aria-label={`Scroll depth distribution across four buckets: ${bucketLabels
+            .map((l, i) => `${l} has ${scrollRow.buckets[i]} events`)
+            .join(", ")}`}
+          className="flex h-8 w-full overflow-hidden rounded-md border border-border/60"
+        >
           {scrollRow.buckets.map((v, i) => {
             const pct = (v / bucketTotal) * 100;
-            const shades = [
-              "hsla(220,80%,55%,0.35)",
-              "hsla(160,80%,50%,0.55)",
-              "hsla(40,90%,55%,0.75)",
-              "hsla(0,85%,55%,0.9)",
-            ];
             return (
               <div
                 key={i}
                 className="flex items-center justify-center text-[10px] font-medium text-foreground/80"
-                style={{ width: `${pct}%`, background: shades[i] }}
-                title={`${bucketLabels[i]} — ${v} events`}
+                style={{ width: `${pct}%`, background: palette.scrollBuckets[i] }}
+                title={`${bucketLabels[i]} — ${bucketDescriptions[i]} · ${v} events (${Math.round(pct)}%)`}
+                aria-label={`${bucketLabels[i]}: ${bucketDescriptions[i]}, ${v} events (${Math.round(pct)}%)`}
               >
                 {pct > 8 ? `${Math.round(pct)}%` : ""}
               </div>
             );
           })}
         </div>
-        <div className="mt-3 grid grid-cols-4 gap-2 text-[11px] text-muted-foreground">
+        <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-muted-foreground md:grid-cols-4" role="list">
           {bucketLabels.map((l, i) => (
-            <div key={l} className="flex items-center gap-1.5">
+            <div key={l} role="listitem" className="flex items-start gap-1.5">
               <span
-                className="inline-block h-2 w-2 rounded-sm"
-                style={{
-                  background: [
-                    "hsla(220,80%,55%,0.6)",
-                    "hsla(160,80%,50%,0.7)",
-                    "hsla(40,90%,55%,0.85)",
-                    "hsla(0,85%,55%,0.95)",
-                  ][i],
-                }}
+                aria-hidden="true"
+                className="mt-1 inline-block h-2 w-2 rounded-sm"
+                style={{ background: palette.scrollLegend[i] }}
               />
-              {l} ({scrollRow.buckets[i]})
+              <span>
+                <span className="font-medium text-foreground">{l}</span>
+                <span className="block">{bucketDescriptions[i]} · {scrollRow.buckets[i]}</span>
+              </span>
             </div>
           ))}
         </div>

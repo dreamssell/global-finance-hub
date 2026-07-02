@@ -64,6 +64,7 @@ export type Database = {
           currency: string
           day: string
           id: string
+          locale: string | null
           post_slug: string | null
           product: Database["public"]["Enums"]["product_type"]
           revenue: number
@@ -76,6 +77,7 @@ export type Database = {
           currency?: string
           day: string
           id?: string
+          locale?: string | null
           post_slug?: string | null
           product: Database["public"]["Enums"]["product_type"]
           revenue?: number
@@ -88,6 +90,7 @@ export type Database = {
           currency?: string
           day?: string
           id?: string
+          locale?: string | null
           post_slug?: string | null
           product?: Database["public"]["Enums"]["product_type"]
           revenue?: number
@@ -166,6 +169,50 @@ export type Database = {
           webhook_secret?: string | null
         }
         Relationships: []
+      }
+      mcp_webhook_logs: {
+        Row: {
+          created_at: string
+          error: string | null
+          event: string
+          id: string
+          payload: Json | null
+          server_id: string | null
+          signature: string | null
+          status_code: number | null
+          verified: boolean
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          event: string
+          id?: string
+          payload?: Json | null
+          server_id?: string | null
+          signature?: string | null
+          status_code?: number | null
+          verified?: boolean
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          event?: string
+          id?: string
+          payload?: Json | null
+          server_id?: string | null
+          signature?: string | null
+          status_code?: number | null
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mcp_webhook_logs_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "mcp_servers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       posts: {
         Row: {
