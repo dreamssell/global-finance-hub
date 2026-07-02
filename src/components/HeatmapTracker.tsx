@@ -30,11 +30,33 @@ export function HeatmapTracker({ country }: { country: string | null }) {
     }
 
     let maxDepth = 0;
+    const milestones = [25, 50, 75, 100];
+    const reached = new Set<number>();
+    let lastClick = 0;
+
+    const emitScroll = (depth: number) => {
+      logAnalyticsEvent({
+        data: { event_type: "scroll", path, country, locale, session_id: sid, scroll_depth: depth },
+      }).catch(() => {});
+    };
+
     const onScroll = () => {
-      const d = Math.min(100, Math.round(((window.scrollY + window.innerHeight) / document.documentElement.scrollHeight) * 100));
+      const h = document.documentElement.scrollHeight - window.innerHeight;
+      const d = h > 0
+        ? Math.min(100, Math.round(((window.scrollY + window.innerHeight) / document.documentElement.scrollHeight) * 100))
+        : 100;
       if (d > maxDepth) maxDepth = d;
+      for (const m of milestones) {
+        if (d >= m && !reached.has(m)) {
+          reached.add(m);
+          emitScroll(m);
+        }
+      }
     };
     const onClick = (e: MouseEvent) => {
+      const now = Date.now();
+      if (now - lastClick < 250) return; // throttle spam
+      lastClick = now;
       logAnalyticsEvent({
         data: {
           event_type: "click", path, country, locale, session_id: sid,
@@ -44,7 +66,7 @@ export function HeatmapTracker({ country }: { country: string | null }) {
       }).catch(() => {});
     };
     const onUnload = () => {
-      logAnalyticsEvent({ data: { event_type: "scroll", path, country, locale, session_id: sid, scroll_depth: maxDepth } }).catch(() => {});
+      if (maxDepth > 0 && !reached.has(maxDepth)) emitScroll(maxDepth);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
