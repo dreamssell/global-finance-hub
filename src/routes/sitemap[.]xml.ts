@@ -12,7 +12,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           auth: { persistSession: false, autoRefreshToken: false },
         });
         const { data: posts } = await sb.from("posts").select("slug,updated_at").eq("published", true);
-        const entries = [
+        const entries: Array<{ path: string; lastmod?: string; changefreq: string; priority: string }> = [
           { path: "/", changefreq: "weekly", priority: "1.0" },
           { path: "/blog", changefreq: "daily", priority: "0.8" },
           ...(posts ?? []).map((p) => ({ path: `/blog/${p.slug}`, lastmod: p.updated_at ?? undefined, changefreq: "weekly", priority: "0.7" })),

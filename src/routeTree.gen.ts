@@ -9,12 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminSecureGatewayRouteImport } from './routes/admin-secure-gateway'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedAdminMcpRouteImport } from './routes/_authenticated/admin.mcp'
+import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
+import { Route as AuthenticatedAdminFinancialRouteImport } from './routes/_authenticated/admin.financial'
+import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
+import { Route as ApiPublicDevContextRouteImport } from './routes/api/public/dev/context'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogRoute = BlogRouteImport.update({
   id: '/blog',
   path: '/blog',
@@ -30,6 +44,10 @@ const AdminSecureGatewayRoute = AdminSecureGatewayRouteImport.update({
   path: '/admin-secure-gateway',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -40,52 +58,157 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => BlogRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminMcpRoute = AuthenticatedAdminMcpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminFinancialRoute =
+  AuthenticatedAdminFinancialRouteImport.update({
+    id: '/financial',
+    path: '/financial',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminAnalyticsRoute =
+  AuthenticatedAdminAnalyticsRouteImport.update({
+    id: '/analytics',
+    path: '/analytics',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const ApiPublicDevContextRoute = ApiPublicDevContextRouteImport.update({
+  id: '/api/public/dev/context',
+  path: '/api/public/dev/context',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin-secure-gateway': typeof AdminSecureGatewayRoute
   '/auth': typeof AuthRoute
   '/blog': typeof BlogRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
+  '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/financial': typeof AuthenticatedAdminFinancialRoute
+  '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/admin/mcp': typeof AuthenticatedAdminMcpRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/api/public/dev/context': typeof ApiPublicDevContextRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin-secure-gateway': typeof AdminSecureGatewayRoute
   '/auth': typeof AuthRoute
   '/blog': typeof BlogRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/financial': typeof AuthenticatedAdminFinancialRoute
+  '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/admin/mcp': typeof AuthenticatedAdminMcpRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
+  '/api/public/dev/context': typeof ApiPublicDevContextRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/admin-secure-gateway': typeof AdminSecureGatewayRoute
   '/auth': typeof AuthRoute
   '/blog': typeof BlogRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
+  '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/_authenticated/admin/financial': typeof AuthenticatedAdminFinancialRoute
+  '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/_authenticated/admin/mcp': typeof AuthenticatedAdminMcpRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/api/public/dev/context': typeof ApiPublicDevContextRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin-secure-gateway' | '/auth' | '/blog' | '/blog/$slug'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin-secure-gateway' | '/auth' | '/blog' | '/blog/$slug'
-  id:
-    | '__root__'
+  fullPaths:
     | '/'
     | '/admin-secure-gateway'
     | '/auth'
     | '/blog'
+    | '/sitemap.xml'
+    | '/admin'
     | '/blog/$slug'
+    | '/admin/analytics'
+    | '/admin/financial'
+    | '/admin/leads'
+    | '/admin/mcp'
+    | '/admin/'
+    | '/api/public/dev/context'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/admin-secure-gateway'
+    | '/auth'
+    | '/blog'
+    | '/sitemap.xml'
+    | '/blog/$slug'
+    | '/admin/analytics'
+    | '/admin/financial'
+    | '/admin/leads'
+    | '/admin/mcp'
+    | '/admin'
+    | '/api/public/dev/context'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/admin-secure-gateway'
+    | '/auth'
+    | '/blog'
+    | '/sitemap.xml'
+    | '/_authenticated/admin'
+    | '/blog/$slug'
+    | '/_authenticated/admin/analytics'
+    | '/_authenticated/admin/financial'
+    | '/_authenticated/admin/leads'
+    | '/_authenticated/admin/mcp'
+    | '/_authenticated/admin/'
+    | '/api/public/dev/context'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AdminSecureGatewayRoute: typeof AdminSecureGatewayRoute
   AuthRoute: typeof AuthRoute
   BlogRoute: typeof BlogRouteWithChildren
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiPublicDevContextRoute: typeof ApiPublicDevContextRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog': {
       id: '/blog'
       path: '/blog'
@@ -107,6 +230,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSecureGatewayRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -121,8 +251,87 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof BlogRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/mcp': {
+      id: '/_authenticated/admin/mcp'
+      path: '/mcp'
+      fullPath: '/admin/mcp'
+      preLoaderRoute: typeof AuthenticatedAdminMcpRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/leads': {
+      id: '/_authenticated/admin/leads'
+      path: '/leads'
+      fullPath: '/admin/leads'
+      preLoaderRoute: typeof AuthenticatedAdminLeadsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/financial': {
+      id: '/_authenticated/admin/financial'
+      path: '/financial'
+      fullPath: '/admin/financial'
+      preLoaderRoute: typeof AuthenticatedAdminFinancialRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/analytics': {
+      id: '/_authenticated/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AuthenticatedAdminAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/api/public/dev/context': {
+      id: '/api/public/dev/context'
+      path: '/api/public/dev/context'
+      fullPath: '/api/public/dev/context'
+      preLoaderRoute: typeof ApiPublicDevContextRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
+
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
+  AuthenticatedAdminFinancialRoute: typeof AuthenticatedAdminFinancialRoute
+  AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
+  AuthenticatedAdminMcpRoute: typeof AuthenticatedAdminMcpRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
+  AuthenticatedAdminFinancialRoute: AuthenticatedAdminFinancialRoute,
+  AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
+  AuthenticatedAdminMcpRoute: AuthenticatedAdminMcpRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface BlogRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
@@ -136,9 +345,12 @@ const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AdminSecureGatewayRoute: AdminSecureGatewayRoute,
   AuthRoute: AuthRoute,
   BlogRoute: BlogRouteWithChildren,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiPublicDevContextRoute: ApiPublicDevContextRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
