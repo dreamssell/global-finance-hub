@@ -17,8 +17,8 @@ export function BlogEngine({ posts }: { posts: LocalizedPost[] }) {
       <h2 className="mb-6 text-2xl font-bold tracking-tight">{t.blog.title}</h2>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {posts.map((p, i) => (
-          <>
-            <article key={p.id} className="group flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card transition hover:border-primary/40">
+          <div key={p.id} className="contents">
+            <article className="group flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card transition hover:border-primary/40">
               {p.cover_image && (
                 <img loading="lazy" src={p.cover_image} alt="" className="aspect-video w-full object-cover" />
               )}
@@ -34,7 +34,7 @@ export function BlogEngine({ posts }: { posts: LocalizedPost[] }) {
               </div>
             </article>
             {i === 2 && <div className="md:col-span-2 lg:col-span-3"><AdPlacementWrapper slot="blog-inline" height={140} /></div>}
-          </>
+          </div>
         ))}
       </div>
     </section>
