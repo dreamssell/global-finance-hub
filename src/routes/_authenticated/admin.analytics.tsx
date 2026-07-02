@@ -73,7 +73,10 @@ function Analytics() {
   const { path: selectedPath, halfLife, cbSafe, showOverlay } = Route.useSearch();
   const navigate = Route.useNavigate();
   const setSearch = (patch: Partial<z.infer<typeof searchSchema>>) =>
-    navigate({ search: (prev) => ({ ...prev, ...patch }), replace: true });
+    navigate({
+      search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, ...patch }),
+      replace: true,
+    });
 
   const palette = cbSafe ? PALETTE.cbSafe : PALETTE.normal;
 
