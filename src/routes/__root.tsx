@@ -11,6 +11,11 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { detectVisitorLocale } from "@/lib/geo.functions";
+import { LanguageProvider } from "@/i18n/LanguageProvider";
+import { LOCALE_META, type Locale } from "@/i18n/config";
+import { Toaster } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
   return (
@@ -73,18 +78,23 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  loader: async () => {
+    try {
+      return await detectVisitorLocale();
+    } catch {
+      return { locale: "en" as Locale, country: null };
+    }
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Seguros & Consórcios — Compare, simulate, save" },
+      { name: "description", content: "Compare insurance and savings-club plans across BR, PT, EN, ES, IT. Smart multi-language simulator, expert content, real numbers." },
+      { property: "og:title", content: "Seguros & Consórcios" },
+      { property: "og:description", content: "Insurance vs Savings Clubs — pick smarter in 60 seconds." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
@@ -92,6 +102,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "alternate", hreflang: "pt-BR", href: "/?locale=br" },
+      { rel: "alternate", hreflang: "pt-PT", href: "/?locale=pt" },
+      { rel: "alternate", hreflang: "en",    href: "/?locale=en" },
+      { rel: "alternate", hreflang: "es",    href: "/?locale=es" },
+      { rel: "alternate", hreflang: "it",    href: "/?locale=it" },
+      { rel: "alternate", hreflang: "x-default", href: "/" },
     ],
   }),
   shellComponent: RootShell,
@@ -101,8 +117,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  // Use the detected locale so <html lang> matches SSR output.
+  const data = Route.useLoaderData();
+  const lang = LOCALE_META[data.locale as Locale]?.lang ?? "en";
   return (
-    <html lang="en">
+    <html lang={lang}>
       <head>
         <HeadContent />
       </head>
@@ -116,11 +135,26 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const { locale } = Route.useLoaderData();
+  const router = useRouter();
+
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
+        router.invalidate();
+        if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+      }
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [router, queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <LanguageProvider initialLocale={locale as Locale}>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <Toaster richColors position="top-right" />
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

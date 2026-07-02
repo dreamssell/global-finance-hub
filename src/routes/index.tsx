@@ -1,24 +1,40 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PublicHeader } from "@/components/PublicHeader";
+import { HeroSection } from "@/components/HeroSection";
+import { MultiStepSimulator } from "@/components/MultiStepSimulator";
+import { BlogEngine } from "@/components/BlogEngine";
+import { AdPlacementWrapper } from "@/components/AdPlacementWrapper";
+import { HeatmapTracker } from "@/components/HeatmapTracker";
+import { listPublishedPosts } from "@/lib/posts.functions";
+import { detectVisitorLocale } from "@/lib/geo.functions";
+import { useI18n } from "@/i18n/LanguageProvider";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
+  loader: async () => {
+    const geo = await detectVisitorLocale().catch(() => ({ locale: "en" as const, country: null }));
+    const posts = await listPublishedPosts({ data: { locale: geo.locale } }).catch(() => []);
+    return { posts, country: geo.country };
+  },
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
+  const { posts, country } = Route.useLoaderData();
+  const { t } = useI18n();
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen bg-background">
+      <PublicHeader />
+      <main>
+        <HeroSection />
+        <AdPlacementWrapper slot="home-top" height={120} />
+        <MultiStepSimulator country={country} />
+        <AdPlacementWrapper slot="home-mid" height={250} />
+        <BlogEngine posts={posts} />
+      </main>
+      <footer className="border-t border-border/60 py-8 text-center text-sm text-muted-foreground">
+        © {new Date().getFullYear()} Seguros &amp; Consórcios · {t.footer.rights}
+      </footer>
+      <HeatmapTracker country={country} />
     </div>
   );
 }
